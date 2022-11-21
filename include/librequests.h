@@ -16,8 +16,15 @@
 #include <stdbool.h>
 #include "hashmap.h"
 
-void fatal(char *mess) { perror(mess); exit(1); }
-void notimplemented() { perror("notimplemented"); exit(1); }
+void fatal(char* mess) {
+    perror(mess);
+    exit(1);
+}
+
+void notimplemented() {
+    perror("notimplemented");
+    exit(1);
+}
 
 /**
  * get a a copy of slice from start_ptr to end_ptr

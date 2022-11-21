@@ -5,11 +5,13 @@ a WIP TOY HTTP/1.0 client write in c with friendly API.
 ```shell
 git clone --recursive https://github.com/TaylorHere/librequests.git <your-project>/vendors/librequests/
 ```
+
 ```cmake
 add_subdirectory(vendors/librequests)
 #set up your target here.
 target_link_libraries(<your target> librequests)
 ```
+
 ```c
 #include "librequests.h"
 

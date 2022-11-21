@@ -6,6 +6,7 @@
 #define LIBREQUESTS_TCP_H
 
 #include "librequests.h"
+
 const int BUFFSIZE = 1024;
 
 typedef struct TCPConnection {
@@ -16,7 +17,7 @@ typedef struct TCPConnection {
 } TCPConnection;
 
 
-TCPConnection TCPConnection_new(char* hostname, long port){
+TCPConnection TCPConnection_new(char* hostname, long port) {
     TCPConnection conn = {.hostname = hostname, .port = port, .fd = -1};
     struct hostent host = *gethostbyname(conn.hostname);
 
@@ -26,24 +27,24 @@ TCPConnection TCPConnection_new(char* hostname, long port){
     conn.sockaddr.sin_addr.s_addr = inet_addr(host.h_name);
 
 
-    if ((conn.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0){
+    if ((conn.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
         fatal("Failed to create TCP socket");
     }
 
-    if (connect(conn.fd,(struct sockaddr *) &conn.sockaddr, sizeof(conn.sockaddr)) != 0) {
+    if (connect(conn.fd, (struct sockaddr*) &conn.sockaddr, sizeof(conn.sockaddr)) != 0) {
         fatal("Failed to connect with server");
     }
     return conn;
 };
 
-void TCPConnection_send(TCPConnection* self, char* message){
+void TCPConnection_send(TCPConnection* self, char* message) {
     size_t len_msg = strlen(message);
     if (send(self->fd, message, len_msg, 0) != len_msg) {
         fatal("Failed to send");
     }
 };
 
-void TCPConnection_drop(TCPConnection* self){
+void TCPConnection_drop(TCPConnection* self) {
     close(self->fd);
 };
 

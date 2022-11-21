@@ -27,14 +27,14 @@ pRequest->body
 typedef HASHMAP(char, char) Header;
 
 typedef struct RequestLine {
-    char *method;
-    char *uri;
-    char *version;
+    char* method;
+    char* uri;
+    char* version;
 } RequestLine;
 
 typedef struct HTTPRequest {
     RequestLine line;
-    char *body;
+    char* body;
     Header headers;
 } HTTPRequest;
 
@@ -43,18 +43,18 @@ HTTPRequest HTTPRequest_new() {
     Header headers;
     hashmap_init(&headers, hashmap_hash_string, strcmp);
     hashmap_set_key_alloc_funcs(&headers, strdup, free);
-    HTTPRequest request = {.body=calloc(0, sizeof(char *)), .headers=headers};
+    HTTPRequest request = {.body=calloc(0, sizeof(char*)), .headers=headers};
 
     return request;
 }
 
-void HTTPRequest_drop(HTTPRequest *self) {
+void HTTPRequest_drop(HTTPRequest* self) {
     hashmap_cleanup(&self->headers);
     if (self->body) free(self->body);
     self = NULL;
 }
 
-HTTPRequest *HTTPRequest_set_request_line(HTTPRequest *self, char *method, char *uri, char *version) {
+HTTPRequest* HTTPRequest_set_request_line(HTTPRequest* self, char* method, char* uri, char* version) {
     self->line.method = method;
     self->line.uri = uri;
     self->line.version = version;
@@ -62,21 +62,21 @@ HTTPRequest *HTTPRequest_set_request_line(HTTPRequest *self, char *method, char 
 }
 
 
-HTTPRequest *HTTPRequest_set_body(HTTPRequest *self, char *body) {
+HTTPRequest* HTTPRequest_set_body(HTTPRequest* self, char* body) {
     self->body = realloc(self->body, strlen(body) + 1);
     strcpy(self->body, body);
     return self;
 }
 
-char *HTTPRequest_header_as_message(HTTPRequest *self) {
-    char *headers = calloc(1, sizeof(char *));
-    const char *key;
-    char *value;
+char* HTTPRequest_header_as_message(HTTPRequest* self) {
+    char* headers = calloc(1, sizeof(char*));
+    const char* key;
+    char* value;
 
     hashmap_foreach(key, value, &self->headers) {
         size_t size = strlen(key) + strlen(value) + 4;
         //4 is SP + CR + LF + ":"
-        char *header_ch = calloc(size, sizeof(char *));
+        char* header_ch = calloc(size, sizeof(char*));
         sprintf(header_ch, "%s%s%s%s%s", key, ":", SP, value, CRLF);
         headers = realloc(headers, strlen(header_ch) + strlen(headers) + 1);
         strcat(headers, header_ch);
@@ -86,9 +86,9 @@ char *HTTPRequest_header_as_message(HTTPRequest *self) {
     return headers;
 }
 
-char *HTTPRequest_as_message(HTTPRequest *self) {
-    char *headers = HTTPRequest_header_as_message(self);
-    char *message = calloc(REQUEST_MESSAGE_SIZE(self, headers), sizeof(char *));
+char* HTTPRequest_as_message(HTTPRequest* self) {
+    char* headers = HTTPRequest_header_as_message(self);
+    char* message = calloc(REQUEST_MESSAGE_SIZE(self, headers), sizeof(char*));
     sprintf(message, "%s%s%s%s%s%s%s%s%s", REQUEST_FORMAT(self, headers));
     free(headers);
     return message;
@@ -96,9 +96,9 @@ char *HTTPRequest_as_message(HTTPRequest *self) {
 
 
 typedef struct StatusLine {
-    char *version;
+    char* version;
     ulong status_code;
-    char *reason_phrase;
+    char* reason_phrase;
 } StatusLine;
 
 /**
@@ -109,7 +109,7 @@ typedef struct StatusLine {
  */
 typedef struct HTTPResponse {
     StatusLine status_line;
-    char *body;
+    char* body;
     Header headers;
 } HTTPResponse;
 
@@ -119,7 +119,7 @@ HTTPResponse HTTPResponse_new() {
     hashmap_init(&headers, hashmap_hash_string, strcmp);
     hashmap_set_key_alloc_funcs(&headers, strdup, free);
     StatusLine line = {.version=calloc(0, sizeof(char*)), .status_code=0, .reason_phrase=calloc(0, sizeof(char*))};
-    HTTPResponse response = {.body=calloc(0, sizeof(char *)), .headers=headers, .status_line=line};
+    HTTPResponse response = {.body=calloc(0, sizeof(char*)), .headers=headers, .status_line=line};
     return response;
 }
 
@@ -132,14 +132,14 @@ void HTTPResponse_set_status_line(HTTPResponse* self, char* version, char* statu
     strcpy(self->status_line.reason_phrase, reason_phrase);
 }
 
-void HTTPResponse_set_body(HTTPResponse* self, char* body){
+void HTTPResponse_set_body(HTTPResponse* self, char* body) {
     self->body = realloc(self->body, strlen(body) + 1);
     strcpy(self->body, body);
 }
 
-void HTTPResponse_drop(HTTPResponse *self) {
+void HTTPResponse_drop(HTTPResponse* self) {
     char* value;
-    hashmap_foreach_data(value, &self->headers){
+    hashmap_foreach_data(value, &self->headers) {
         free(value);
     };
     hashmap_cleanup(&self->headers);
@@ -166,7 +166,7 @@ void URL_drop(URL* self) {
     if (self->auth_pwd != NULL) free(self->auth_pwd);
 }
 
-URL URL_new(char *input_url) {
+URL URL_new(char* input_url) {
     URL self = {.use_tls = 0};
     // URL-> http(s)://(user)(:)(pwd)(@)host(:port)(/)(path)
     //TODO: URL safe encoding;
@@ -176,7 +176,7 @@ URL URL_new(char *input_url) {
     if ((schema_hit = strstr(url, "https://")) != NULL) {
         self.use_tls = 1;
         url = schema_hit + strlen("https://");
-    } else if ((schema_hit = strstr(url, "http://")) != NULL){
+    } else if ((schema_hit = strstr(url, "http://")) != NULL) {
         self.use_tls = -1;
         url = schema_hit + strlen("http://");
     }
@@ -220,21 +220,22 @@ URL URL_new(char *input_url) {
 }
 
 
-ulong parse_header(char *receive, HTTPResponse *pResponse) {
+ulong parse_header(char* receive, HTTPResponse* pResponse) {
     ulong header_size = 0;
     char* target_hit;
     char* unseen = receive;
     if (receive == NULL || strlen(receive) == 0) {
-        return  header_size;
+        return header_size;
     }
 
     while ((target_hit = strstr(unseen, CRLF)) != NULL) {
-        char* target_origin= NULL;
+        char* target_origin = NULL;
         target_origin = strslice(unseen, target_hit);
         char* target = target_origin;
 
         if (strlen(target) == 0) {
-            free(target_origin); break; // 1.1.3 target is CRLF
+            free(target_origin);
+            break; // 1.1.3 target is CRLF
         }
         header_size += strlen(target) + strlen(CRLF);
 
@@ -242,7 +243,7 @@ ulong parse_header(char *receive, HTTPResponse *pResponse) {
             // 1.1.1 target is status line;
 
             char* version_hit = strstr(target, SP);
-            char* version  = strslice(target, version_hit);
+            char* version = strslice(target, version_hit);
 
             target = version_hit + strlen(SP);
             char* status_code_hit = strstr(target, SP);
@@ -259,7 +260,7 @@ ulong parse_header(char *receive, HTTPResponse *pResponse) {
             // 1.1.2 target is headers;
             char* key_hit = strstr(target, ": ");
             char* key = strslice(target, key_hit);
-            char* value = key_hit+strlen(": ");
+            char* value = key_hit + strlen(": ");
             hashmap_put(&pResponse->headers, key, strdup(value));
             free(key);
         }
@@ -278,28 +279,28 @@ typedef struct HTTP {
     HTTPResponse* pResponse;
 } HTTP;
 
-HTTP HTTP_new(TCPConnection *pConn, HTTPRequest *pRequest, HTTPResponse *pResponse) {
+HTTP HTTP_new(TCPConnection* pConn, HTTPRequest* pRequest, HTTPResponse* pResponse) {
     HTTP http = {.pConn=pConn, .pRequest=pRequest, .pResponse=pResponse};
     return http;
 }
 
-HTTP HTTP_drop(HTTP* self){
+HTTP HTTP_drop(HTTP* self) {
 
 }
 
 void HTTP_send(HTTP* self) {
-    char *message = HTTPRequest_as_message(self->pRequest);
+    char* message = HTTPRequest_as_message(self->pRequest);
     TCPConnection_send(self->pConn, message);
     free(message);
 }
 
 void HTTP_receive(HTTP* self) {
 
-    char *buffer = calloc(BUFFSIZE, sizeof(char *));
-    char *receive = calloc(1, sizeof(char *));
+    char* buffer = calloc(BUFFSIZE, sizeof(char*));
+    char* receive = calloc(1, sizeof(char*));
 
     ulong header_size = 0;
-    char *content_length;
+    char* content_length;
 
     while (1) {
         if (recv(self->pConn->fd, buffer, BUFFSIZE - 1, MSG_DONTWAIT) < 0 && errno != EAGAIN) {
@@ -308,19 +309,20 @@ void HTTP_receive(HTTP* self) {
             TCPConnection_drop(self->pConn);
             fatal("Failed to recv");
         }
-        receive = (char *) realloc(receive, strlen(receive) + BUFFSIZE + 1);
+        receive = (char*) realloc(receive, strlen(receive) + BUFFSIZE + 1);
         strcat(receive, buffer);
         memset(buffer, 0, BUFFSIZE);
 
 //      1. parse the header, get the value of Content-Length;
-        if ((header_size = parse_header(receive, self->pResponse)) > 0 && (content_length = hashmap_get(&self->pResponse->headers, "Content-Length")) != NULL) {
+        if ((header_size = parse_header(receive, self->pResponse)) > 0 &&
+            (content_length = hashmap_get(&self->pResponse->headers, "Content-Length")) != NULL) {
             if ((strlen(receive) - header_size - strtol(content_length, NULL, 10)) >= 0)
                 break; //FIXME: should not receive data more than content length says;
 //               2. receive loop ends until Content-Length arrive;
         }
     }
 //    3. copy body
-    HTTPResponse_set_body(self->pResponse, &receive[header_size+strlen(CRLF)]);
+    HTTPResponse_set_body(self->pResponse, &receive[header_size + strlen(CRLF)]);
     free(buffer);
     free(receive);
 }
