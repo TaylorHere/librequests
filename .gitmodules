@@ -1,0 +1,3 @@
+[submodule "vendors/hashmap"]
+	path = vendors/hashmap
+	url = https://github.com/DavidLeeds/hashmap.git
