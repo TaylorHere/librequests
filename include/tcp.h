@@ -5,53 +5,22 @@
 #ifndef LIBREQUESTS_TCP_H
 #define LIBREQUESTS_TCP_H
 
-#include "librequests.h"
-
-const int BUFFSIZE = 1024;
+#include <netinet/in.h>
+#define BUFFSIZE 1024
 
 typedef struct TCPConnection {
-    char* hostname;
-    long port;
-    int fd;
-    struct sockaddr_in sockaddr;
+  char *hostname;
+  long port;
+  int fd;
+  struct sockaddr_in sockaddr;
 } TCPConnection;
 
+TCPConnection TCPConnection_new (char *hostname, long port);
 
-TCPConnection TCPConnection_new(char* hostname, long port) {
-    TCPConnection conn = {.hostname = hostname, .port = port, .fd = -1};
-    struct hostent host = *gethostbyname(conn.hostname);
+void TCPConnection_send (TCPConnection *self, char *message);
 
-    memset(&conn.sockaddr, 0, sizeof(conn.sockaddr));
-    conn.sockaddr.sin_family = host.h_addrtype;
-    conn.sockaddr.sin_port = htons(conn.port);
-    conn.sockaddr.sin_addr.s_addr = inet_addr(host.h_name);
+void TCPConnection_drop (TCPConnection *self);
 
-
-    if ((conn.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-        fatal("Failed to create TCP socket");
-    }
-
-    if (connect(conn.fd, (struct sockaddr*) &conn.sockaddr, sizeof(conn.sockaddr)) != 0) {
-        fatal("Failed to connect with server");
-    }
-    return conn;
-};
-
-void TCPConnection_send(TCPConnection* self, char* message) {
-    size_t len_msg = strlen(message);
-    if (send(self->fd, message, len_msg, 0) != len_msg) {
-        fatal("Failed to send");
-    }
-};
-
-void TCPConnection_drop(TCPConnection* self) {
-    close(self->fd);
-};
-
-void TCPConnection_receive(TCPConnection* self, char* buffer) {
-    if (recv(self->fd, buffer, BUFFSIZE - 1, MSG_DONTWAIT) < 0 && errno != EAGAIN) {
-        TCPConnection_drop(self);
-    }
-}
+void TCPConnection_receive (TCPConnection *self, char *buffer);
 
 #endif //LIBREQUESTS_TCP_H

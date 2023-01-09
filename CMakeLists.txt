@@ -4,7 +4,7 @@ project(librequests C)
 add_subdirectory(vendors/hashmap)
 
 set(CMAKE_C_STANDARD 99)
-add_library(librequests SHARED  src/librequests.c)
+add_library(librequests SHARED include/librequests.h include/http.h include/tcp.h src/librequests.c src/http.c src/tcp.c)
 target_link_libraries(librequests hashmap)
 
 target_include_directories(librequests
